@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Overops Report</title>
+    <style>
+        #include("web/css/style.css")
+    </style>
+</head>
+
+#set($overopsLogo = "bamboo-plugin/src/main/resources/web/img/overops-logo.svg")
+
+<body class="overops-quality-report container">
+    #parse("template/body.vm")
+</body>
+</html>

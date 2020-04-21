@@ -2,7 +2,10 @@ package com.overops.report.service;
 
 import com.google.gson.Gson;
 import com.overops.report.service.model.OOReportRegressedEvent;
-import com.overops.report.service.model.ReportVisualizationModel;
+import com.overops.report.service.model.QualityReportVisualizationModel;
+import com.overops.report.service.model.QualityReportVisualizationModel.ReportStatus;
+import com.overops.report.service.model.QualityReportTestResults;
+import com.overops.report.service.model.EventVisualizationModel;
 import com.takipi.api.client.ApiClient;
 import com.takipi.api.client.RemoteApiClient;
 import com.takipi.api.client.data.view.SummarizedView;
@@ -12,43 +15,16 @@ import com.takipi.api.client.util.cicd.ProcessQualityGates;
 import com.takipi.api.client.util.cicd.QualityGateReport;
 import com.takipi.api.client.util.regression.*;
 import com.takipi.api.client.util.view.ViewUtil;
-import org.apache.commons.io.IOUtils;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ReportService {
+    private transient Gson gson = new Gson();
 
-    private Gson gson = new Gson();
-
-    public ReportVisualizationModel createReportVisualizationModel(String pathToReportVisualizationModelJson) {
-        ClassLoader cl = ReportService.class.getClassLoader();
-        URL[] urls = ((URLClassLoader) cl).getURLs();
-
-        for (URL url : urls) {
-            System.out.println(url.getFile());
-        }
-
-        InputStream stream = ReportService.class.getClassLoader().getResourceAsStream(pathToReportVisualizationModelJson);
-        Reader reader = new InputStreamReader(stream);
-        int intValueOfChar;
-        String json = "";
-        try {
-            while ((intValueOfChar = reader.read()) != -1) {
-                json += (char) intValueOfChar;
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return gson.fromJson(json, ReportVisualizationModel.class);
-    }
-
-    public ReportVisualizationModel createReportVisualizationModel(String endPoint, String apiKey, QualityReportParams reportParams) {
+    public QualityReportVisualizationModel createReportVisualizationModel(String endPoint, String apiKey, QualityReportParams reportParams) {
         PrintStream printStream = System.out;
 
         boolean runRegressions = convertToMinutes(reportParams.getBaselineTimespan()) > 0;
@@ -101,8 +77,6 @@ public class ReportService {
         if (maxEventVolume != 0 || maxUniqueErrors != 0) {
             countGate = true;
         }
-        boolean checkMaxEventGate = maxEventVolume != 0;
-        boolean checkUniqueEventGate = maxUniqueErrors != 0;
 
         //get the CICD quality report for all gates but Regressions
         //initialize the QualityGateReport so we don't get null pointers below
@@ -115,7 +89,6 @@ public class ReportService {
         //run the regression gate
         RateRegression rateRegression = null;
         List<OOReportRegressedEvent> regressions = null;
-        boolean hasRegressions = false;
         if (runRegressions) {
             rateRegression = RegressionUtil.calculateRateRegressions(apiClient, input, output, verbose);
 
@@ -147,67 +120,15 @@ public class ReportService {
             }
 
             regressions = getAllRegressions(apiClient, input, rateRegression, filter);
-            if (regressions != null && regressions.size() > 0) {
-                hasRegressions = true;
-                replaceSourceId(regressions);
-            }
+            replaceSourceId(regressions);
         }
 
-        //max total error gate
-        boolean maxVolumeExceeded = (maxEventVolume != 0) && (qualityGateReport.getTotalErrorCount() > maxEventVolume);
+        replaceSourceId(qualityGateReport.getNewErrors());
+        replaceSourceId(qualityGateReport.getResurfacedErrors());
+        replaceSourceId(qualityGateReport.getCriticalErrors());
+        replaceSourceId(qualityGateReport.getTopErrors());
 
-        //max unique error gate
-        long uniqueEventCount;
-        boolean maxUniqueErrorsExceeded;
-        if (maxUniqueErrors != 0) {
-            uniqueEventCount = qualityGateReport.getUniqueErrorCount();
-            maxUniqueErrorsExceeded = uniqueEventCount > maxUniqueErrors;
-        } else {
-            uniqueEventCount = 0;
-            maxUniqueErrorsExceeded = false;
-        }
-
-        //new error gate
-        boolean newErrors = false;
-        if (qualityGateReport.getNewErrors() != null && qualityGateReport.getNewErrors().size() > 0) {
-            newErrors = true;
-            replaceSourceId(qualityGateReport.getNewErrors());
-        }
-
-        //resurfaced error gate
-        boolean resurfaced = false;
-        if (qualityGateReport.getResurfacedErrors() != null && qualityGateReport.getResurfacedErrors().size() > 0) {
-            resurfaced = true;
-            replaceSourceId(qualityGateReport.getResurfacedErrors());
-        }
-
-        //critical error gate
-        boolean critical = false;
-        if (qualityGateReport.getCriticalErrors() != null && qualityGateReport.getCriticalErrors().size() > 0) {
-            critical = true;
-            replaceSourceId(qualityGateReport.getCriticalErrors());
-        }
-
-        //top errors
-        if (qualityGateReport.getTopErrors() != null && qualityGateReport.getTopErrors().size() > 0) {
-            replaceSourceId(qualityGateReport.getTopErrors());
-        }
-
-        boolean checkCritical = false;
-        if (input.criticalExceptionTypes != null && input.criticalExceptionTypes.size() > 0) {
-            checkCritical = true;
-        }
-
-        boolean unstable = (hasRegressions)
-                || (maxVolumeExceeded)
-                || (maxUniqueErrorsExceeded)
-                || (newErrors)
-                || (resurfaced)
-                || (critical);
-
-        ReportVisualizationModel visualizationModel = new ReportVisualizationModel(qualityGateReport, input, rateRegression, regressions, unstable, newEvents, resurfacedEvents, checkCritical, checkMaxEventGate, checkUniqueEventGate, runRegressions, maxEventVolume, maxUniqueErrors, reportParams.isMarkUnstable());
-        return visualizationModel;
-
+        return createReportVisualizationModel(qualityGateReport, input, rateRegression, regressions, newEvents, resurfacedEvents, runRegressions, maxEventVolume, maxUniqueErrors, reportParams.isMarkUnstable());
     }
 
     private int convertToMinutes(String timeWindow) {
@@ -228,8 +149,130 @@ public class ReportService {
         return 0;
     }
 
-    private void validateInputs(String endPoint, String apiKey, QualityReportParams reportParams) {
 
+    private QualityReportVisualizationModel createReportVisualizationModel(QualityGateReport qualityGateReport, RegressionInput input, RateRegression regression, List<OOReportRegressedEvent> regressions, boolean checkNewGate, boolean checkResurfacedGate, boolean checkRegressionGate, Integer maxEventVolume, Integer maxUniqueVolume, boolean markedUnstable) {
+        QualityReportVisualizationModel reportModel = new QualityReportVisualizationModel();
+
+        boolean checkCriticalGate = input.criticalExceptionTypes != null && (input.criticalExceptionTypes.size() > 0);
+
+        boolean hasNewErrors = (qualityGateReport.getNewErrors() != null) && (qualityGateReport.getNewErrors().size() > 0);
+        boolean hasResurfacedErrors = (qualityGateReport.getResurfacedErrors() != null) && (qualityGateReport.getResurfacedErrors().size() > 0);
+        boolean hasCriticalErrors = (qualityGateReport.getCriticalErrors() != null) && (qualityGateReport.getCriticalErrors().size() > 0);
+        boolean hasRegressions = (regressions != null) && (regressions.size() > 0);
+        boolean maxVolumeExceeded = (maxEventVolume != 0) && (qualityGateReport.getTotalErrorCount() >= maxEventVolume);
+        boolean maxUniqueErrorsExceeded = (maxUniqueVolume != 0) && (qualityGateReport.getUniqueErrorCount() >= maxUniqueVolume);
+        
+        boolean unstable = hasRegressions || maxVolumeExceeded || maxUniqueErrorsExceeded || hasNewErrors || hasResurfacedErrors || hasCriticalErrors;
+
+        String deploymentName = getDeploymentName(input);
+        if (!unstable) {
+            reportModel.setStatusCode(ReportStatus.PASSED);
+            reportModel.setStatusMsg("Congratulations, build " + deploymentName + " has passed all quality gates!");
+        }  else {
+            if (markedUnstable) {
+                reportModel.setStatusCode(ReportStatus.FAILED);
+                reportModel.setStatusMsg("OverOps has marked build "+ deploymentName + " as \"failure\"."); ;
+            } else {
+                reportModel.setStatusCode(ReportStatus.WARNING);
+                reportModel.setStatusMsg("OverOps has detected issues with build "+ deploymentName + " but did not mark the build as \"failure\".");
+            }
+        }
+
+        if (checkNewGate) {
+            QualityReportTestResults newErrorsTestResults = new QualityReportTestResults();
+            newErrorsTestResults.setPassed(!hasNewErrors);
+            if (hasNewErrors) {
+                newErrorsTestResults.setEvents(qualityGateReport.getNewErrors().stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+                newErrorsTestResults.setMessage("New Error Gate: Failed, OverOps detected " + newErrorsTestResults.getEvents().size() + " new error(s) in your build.");
+            } else {
+                newErrorsTestResults.setMessage("New Error Gate: Passed, OverOps did not detect any new errors in your build.");
+            }
+            reportModel.setNewErrorsTestResults(newErrorsTestResults);
+        }
+
+        if (checkCriticalGate) {
+            QualityReportTestResults criticalErrorsTestResults = new QualityReportTestResults();
+            criticalErrorsTestResults.setPassed(!hasCriticalErrors);
+            if (hasCriticalErrors) {
+                criticalErrorsTestResults.setEvents(qualityGateReport.getCriticalErrors().stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+                criticalErrorsTestResults.setMessage("Critical Error Gate: Failed, OverOps detected " + criticalErrorsTestResults.getEvents().size() + " critical error(s) in your build.");
+            } else {
+                criticalErrorsTestResults.setMessage("Critical Error Gate: Passed, OverOps did not detect any critical errors in your build.");
+            }
+            reportModel.setCriticalErrorsTestResults(criticalErrorsTestResults);
+        }
+
+        if (checkRegressionGate) {
+            String baselineTime = Objects.nonNull(input) ? input.baselineTime : "";
+
+            QualityReportTestResults regressionErrorsTestResults = new QualityReportTestResults();
+            regressionErrorsTestResults.setPassed(!hasRegressions);
+            if (hasRegressions) {
+                regressionErrorsTestResults.setEvents(regressions.stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+                regressionErrorsTestResults.setMessage("Increasing Quality Gate: Failed, OverOps detected increasing errors in the current build against the baseline of " + baselineTime);
+            } else {
+                regressionErrorsTestResults.setMessage("Increasing Quality Gate: Passed, OverOps did not detect any increasing errors in the current build against the baseline of " + baselineTime);
+            }
+            reportModel.setRegressionErrorsTestResults(regressionErrorsTestResults);
+        }
+
+        if (checkResurfacedGate) {
+            QualityReportTestResults resurfacedErrorsTestResults = new QualityReportTestResults();
+            resurfacedErrorsTestResults.setPassed(!hasResurfacedErrors);
+            if (hasResurfacedErrors) {
+                resurfacedErrorsTestResults.setEvents(qualityGateReport.getResurfacedErrors().stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+                resurfacedErrorsTestResults.setMessage("Resurfaced Error Gate: Failed, OverOps detected " + resurfacedErrorsTestResults.getEvents().size() + " resurfaced error(s) in your build.");
+            } else {
+                resurfacedErrorsTestResults.setMessage("Resurfaced Error Gate: Passed, OverOps did not detect any resurfaced errors in your build.");
+            }
+            reportModel.setResurfacedErrorsTestResults(resurfacedErrorsTestResults);
+        }
+
+        if (maxUniqueVolume != 0) {
+            long uniqueEventsCount = qualityGateReport.getUniqueErrorCount();
+
+            QualityReportTestResults uniqueErrorsTestResults = new QualityReportTestResults();
+            uniqueErrorsTestResults.setPassed(!maxUniqueErrorsExceeded);
+            if (maxUniqueErrorsExceeded) {
+                uniqueErrorsTestResults.setMessage("Unique Error Volume Gate: Failed, OverOps detected " + uniqueEventsCount + " unique error(s) which is >= the max allowable of " + maxUniqueVolume);
+                uniqueErrorsTestResults.setErrorCount(uniqueEventsCount);
+            } else {
+                uniqueErrorsTestResults.setMessage("Unique Error Volume Gate: Passed, OverOps detected " + uniqueEventsCount + " unique error(s) which is < than max allowable of " + maxUniqueVolume);
+            }
+            reportModel.setUniqueErrorsTestResults(uniqueErrorsTestResults);
+        }
+
+        if (maxUniqueVolume != 0) {
+            long eventVolume = qualityGateReport.getTotalErrorCount();
+            QualityReportTestResults totalErrorsTestResults = new QualityReportTestResults();
+            totalErrorsTestResults.setPassed(!maxVolumeExceeded);
+            if (maxVolumeExceeded) {
+                totalErrorsTestResults.setMessage("Total Error Volume Gate: Failed, OverOps detected " + eventVolume + " total error(s) which is >= the max allowable of " + maxEventVolume);
+                totalErrorsTestResults.setErrorCount(eventVolume);
+            } else {
+                totalErrorsTestResults.setMessage("Total Error Volume Gate: Passed, OverOps detected " + eventVolume + " total error(s) which is < than max allowable of " + maxEventVolume);
+            }
+            reportModel.setTotalErrorsTestResults(totalErrorsTestResults);
+        }
+
+        if ((maxUniqueVolume != 0) || (maxUniqueVolume != 0)) {
+            reportModel.setTopEvents(Optional.ofNullable(qualityGateReport.getTopErrors()).orElse(new ArrayList<>()).stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+        }
+
+        return reportModel;
+    }
+
+    private String getDeploymentName(RegressionInput input) {
+        if (Objects.nonNull(input) && Objects.nonNull(input.deployments)) {
+            String value = input.deployments.toString();
+            value = value.replace("[", "");
+            value = value.replace("]", "");
+            return value;
+        }
+        return "";
+    }
+
+    private void validateInputs(String endPoint, String apiKey, QualityReportParams reportParams) {
         if (isEmptyString(endPoint)) {
             throw new IllegalArgumentException("Missing host name");
         }
@@ -254,7 +297,6 @@ public class ReportService {
         if (isEmptyString(reportParams.getServiceId())) {
             throw new IllegalArgumentException("Missing environment Id");
         }
-
     }
 
     private Collection<String> parseArrayString(String value, PrintStream printStream, String name) {
@@ -356,12 +398,14 @@ public class ReportService {
     // for each event, replace the source ID in the ARC link with 58 (which means TeamCity)
     // see: https://overopshq.atlassian.net/wiki/spaces/PP/pages/1529872385/Hit+Sources
     private void replaceSourceId(List<? extends OOReportEvent> events) {
-        String match = "&source=(\\d)+";  // matches at least one digit
-        String replace = "&source=58";    // replace with 58
-
-        for (OOReportEvent event : events) {
-            String arcLink = event.getARCLink().replaceAll(match, replace);
-            event.setArcLink(arcLink);
+        if (events != null) {
+            String match = "&source=(\\d)+";  // matches at least one digit
+            String replace = "&source=58";    // replace with 58
+    
+            for (OOReportEvent event : events) {
+                String arcLink = event.getARCLink().replaceAll(match, replace);
+                event.setArcLink(arcLink);
+            }
         }
     }
 
@@ -387,4 +431,5 @@ public class ReportService {
 
         return result;
     }
+
 }
