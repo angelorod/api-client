@@ -25,12 +25,12 @@ public class QualityReportVisualizationModel {
         LOGO_ICON("web/img/overops-logo.svg"),
         CSS("web/css/style.css"),
         BODY_HTML("web/html/body.html"),
-        ERROR_GATE_HEADER_HTML("web/html/body.html"),
-        ERROR_GATE_SUMMARY_HTML("web/html/body.html"),
-        EVENT_DETAILS_HTML("web/html/body.html"),
-        EVENTS_TABLE_HTML("web/html/body.html"),
-        EXCEPTION_HTML_HTML("web/html/body.html"),
-        REPORT_HTML("web/html/body.html");
+        ERROR_GATE_HEADER_HTML("web/html/errorGateHeader.html"),
+        ERROR_GATE_SUMMARY_HTML("web/html/errorGateSummary.html"),
+        EVENT_DETAILS_HTML("web/html/eventDetails.html"),
+        EVENTS_TABLE_HTML("web/html/eventsTable.html"),
+        EXCEPTION_HTML("web/html/exception.html"),
+        REPORT_HTML("web/html/report.html");
 
         private final String filePath;
 
@@ -174,7 +174,7 @@ public class QualityReportVisualizationModel {
     }
 
     private String readFile(String relativeFilePath) throws IOException {
-        String fileContents = null;
+        String fileContents = "";
 
         InputStream stream = this.getClass().getClassLoader().getResourceAsStream(relativeFilePath);
         Reader reader = new InputStreamReader(stream);
@@ -389,10 +389,12 @@ public class QualityReportVisualizationModel {
                 break;
         }
 
-
         if (testResults != null) {
-
             html = getWebResource(WebResource.EVENTS_TABLE_HTML);
+            if (testType == TestType.REGRESSION_ERRORS) {
+                html = html.replace("<th>Volume</th>", "<th>Volume / Rate</th>");
+                html = html.replace("<th>Type</th>", "");
+            }
             String eventsHtml = "";
             for (EventVisualizationModel event : events) {
                 String eventHtml = getWebResource(WebResource.EVENT_DETAILS_HTML);
@@ -405,8 +407,7 @@ public class QualityReportVisualizationModel {
 
                 eventsHtml += eventHtml;
             }
-
-            html.replace("<tr class=\"events\"></tr>", eventsHtml);
+            html = html.replace("<tr class=\"events\"></tr>", eventsHtml);
         }
         return html;
     }

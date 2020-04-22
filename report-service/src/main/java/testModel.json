@@ -1,0 +1,201 @@
+{    "statusCode": "FAILED",
+    "statusMsg": "Report Summary",
+
+    "newErrorsTestResults": {
+        "passed": false,
+        "message": "New Error Summary",
+        "errorCount": 1000,
+        "events": [
+            {
+                "arcLink": "newEvent1Link.com",
+                "type": "",
+                "applications": "newEvent1App",
+                "introducedBy": "newEvent1Person",
+                "eventSummary": "New Event 1 Summary",
+                "eventRate": "New Event 1 Rate",
+                "hits": 1,
+                "calls": 10     
+            },
+            {
+                "arcLink": "newEvent2Link.com",
+                "type": "",
+                "applications": "newEvent2App",
+                "introducedBy": "newEvent2Person",
+                "eventSummary": "New Event 2 Summary",
+                "eventRate": "New Event 2 Rate",
+                "hits": 2,
+                "calls": 20     
+            },
+            {
+                "arcLink": "newEvent3Link.com",
+                "type": "",
+                "applications": "newEvent3App",
+                "introducedBy": "newEvent3Person",
+                "eventSummary": "New Event 3 Summary",
+                "eventRate": "New Event 3 Rate",
+                "hits": 3,
+                "calls": 30     
+            }
+        ]
+    },
+    "resurfacedErrorsTestResults": {
+        "passed": false,
+        "message": "Resurfaced Error Summary",
+        "errorCount": 2000,
+        "events": [
+            {
+                "arcLink": "resurfacedEvent1Link.com",
+                "type": "",
+                "applications": "resurfacedEvent1App",
+                "introducedBy": "resurfacedEvent1Person",
+                "eventSummary": "Resurfaced Event 1 Summary",
+                "eventRate": "Resurfaced Event 1 Rate",
+                "hits": 4,
+                "calls": 40     
+            },
+            {
+                "arcLink": "resurfacedEvent2Link.com",
+                "type": "",
+                "applications": "resurfacedEvent2App",
+                "introducedBy": "resurfacedEvent2Person",
+                "eventSummary": "Resurfaced Event 2 Summary",
+                "eventRate": "Resurfaced Event 2 Rate",
+                "hits": 5,
+                "calls": 50     
+            },
+            {
+                "arcLink": "resurfacedEvent3Link.com",
+                "type": "",
+                "applications": "resurfacedEvent3App",
+                "introducedBy": "resurfacedEvent3Person",
+                "eventSummary": "Resurfaced Event 3 Summary",
+                "eventRate": "Resurfaced Event 3 Rate",
+                "hits": 6,
+                "calls": 60     
+            }
+        ]
+    },
+    "criticalErrorsTestResults": {
+        "passed": false,
+        "message": "Critical Error Summary",
+        "errorCount": 3000,
+        "events": [
+            {
+                "arcLink": "criticalEvent1Link.com",
+                "type": "",
+                "applications": "criticalEvent1App",
+                "introducedBy": "criticalEvent1Person",
+                "eventSummary": "Critical Event 1 Summary",
+                "eventRate": "Critical Event 1 Rate",
+                "hits": 7,
+                "calls": 70     
+            },
+            {
+                "arcLink": "criticalEvent2Link.com",
+                "type": "",
+                "applications": "criticalEvent2App",
+                "introducedBy": "criticalEvent2Person",
+                "eventSummary": "Critical Event 2 Summary",
+                "eventRate": "Critical Event 2 Rate",
+                "hits": 8,
+                "calls": 80     
+            },
+            {
+                "arcLink": "criticalEvent3Link.com",
+                "type": "",
+                "applications": "criticalEvent3App",
+                "introducedBy": "criticalEvent3Person",
+                "eventSummary": "Critical Event 3 Summary",
+                "eventRate": "Critical Event 3 Rate",
+                "hits": 9,
+                "calls": 90     
+            }
+        ]
+    },
+    "regressionErrorsTestResults": {
+        "passed": false,
+        "message": "Regression Summary",
+        "errorCount": 6000,
+        "events": [
+            {
+                "arcLink": "regressedEvent1Link.com",
+                "type": "",
+                "applications": "regressedEvent1App",
+                "introducedBy": "regressedEvent1Person",
+                "eventSummary": "Regressed Event 1 Summary",
+                "eventRate": "Regressed Event 1 Rate",
+                "hits": 13,
+                "calls": 130     
+            },
+            {
+                "arcLink": "regressedEvent2Link.com",
+                "type": "",
+                "applications": "regressedEvent2App",
+                "introducedBy": "regressedEvent2Person",
+                "eventSummary": "Regressed Event 2 Summary",
+                "eventRate": "Regressed Event 2 Rate",
+                "hits": 14,
+                "calls": 140     
+            },
+            {
+                "arcLink": "regressedEvent3Link.com",
+                "type": "",
+                "applications": "regressedEvent3App",
+                "introducedBy": "regressedEvent3Person",
+                "eventSummary": "Regressed Event 3 Summary",
+                "eventRate": "Regressed Event 3 Rate",
+                "hits": 15,
+                "calls": 160     
+            }
+        ]
+    },
+    "totalErrorsTestResults": {
+        "passed": false,
+        "message": "Total Error Summary",
+        "errorCount": 4000,
+        "events": null
+    },
+    "uniqueErrorsTestResults": {
+        "passed": false,
+        "message": "Unique Error Summary",
+        "errorCount": 5000,
+        "events": null
+    },
+    "topEvents": [
+        {
+            "arcLink": "topEvent1Link.com",
+            "type": "",
+            "applications": "topEvent1App",
+            "introducedBy": "topEvent1Person",
+            "eventSummary": "Top Event 1 Summary",
+            "eventRate": "Top Event 1 Rate",
+            "hits": 10,
+            "calls": 100     
+        },
+        {
+            "arcLink": "topEvent2Link.com",
+            "type": "",
+            "applications": "topEvent2App",
+            "introducedBy": "topEvent2Person",
+            "eventSummary": "Top Event 2 Summary",
+            "eventRate": "Top Event 2 Rate",
+            "hits": 11,
+            "calls": 110     
+        },
+        {
+            "arcLink": "topEvent3Link.com",
+            "type": "",
+            "applications": "topEvent3App",
+            "introducedBy": "topEvent3Person",
+            "eventSummary": "Top Event 3 Summary",
+            "eventRate": "Top Event 3 Rate",
+            "hits": 12,
+            "calls": 120     
+        }
+    ],
+    "exceptionDetails": {
+        "exceptionMessage": "Exception Error",
+        "stackTrace": "Stack Trace",
+        "emailMessage": "Email Message"
+    }
+}

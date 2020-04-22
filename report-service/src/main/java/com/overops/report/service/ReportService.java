@@ -24,6 +24,43 @@ import java.util.stream.Collectors;
 public class ReportService {
     private transient Gson gson = new Gson();
 
+    public static void main(String[] args) {
+        String endPoint = "https://api.overops.com";
+        String apiKey = "I7xRFYEczZo9FDlgm/SJCfsMZVlUfseW6oGCpgLp";
+
+        QualityReportParams reportParams = new QualityReportParams();
+        reportParams.setApplicationName("collector-server");
+        reportParams.setDeploymentName("v4.44.3");
+        reportParams.setServiceId("S37777");
+        // reportParams.setDebug(true);
+        reportParams.setNewEvents(true);
+        reportParams.setResurfacedErrors(true);
+
+        try {
+            QualityReportVisualizationModel visualizationModel;
+            visualizationModel = new ReportService().createReportVisualizationModel(endPoint, apiKey, reportParams);
+            
+            // String json = "";
+            // InputStream stream = ReportService.class.getClassLoader().getResourceAsStream("testModel2.json");
+            // Reader reader = new InputStreamReader(stream);
+            // int intValueOfChar;
+            // while ((intValueOfChar = reader.read()) != -1) {
+            //     json += (char) intValueOfChar;
+            // }
+            // reader.close();
+            // visualizationModel = new Gson().fromJson(json, QualityReportVisualizationModel.class);
+
+            String html = visualizationModel.toHtml();
+    
+            BufferedWriter writer = new BufferedWriter(new FileWriter("myReport.html"));
+            writer.write(html);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public QualityReportVisualizationModel createReportVisualizationModel(String endPoint, String apiKey, QualityReportParams reportParams) {
         PrintStream printStream = System.out;
 
