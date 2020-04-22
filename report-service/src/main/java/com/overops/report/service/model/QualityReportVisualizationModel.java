@@ -153,7 +153,7 @@ public class QualityReportVisualizationModel {
     public String toHtml() throws IOException {
         HtmlParts htmlParts = getHtmlParts();
         String html = getWebResource(WebResource.REPORT_HTML).replace("<style></style>", "<style>" + htmlParts.getCss() + "</style>");
-        html = html.replace("<body></body>", "<body class=\"overops-quality-report container\">" + htmlParts.getBody() + "</body>");
+        html = html.replace("<body></body>", "<body>" + htmlParts.getBody() + "</body>");
         return html;
     }
 
@@ -389,26 +389,32 @@ public class QualityReportVisualizationModel {
                 break;
         }
 
-        if (testResults != null) {
+        if ((testResults != null) && !testResults.isPassed()){
             html = getWebResource(WebResource.EVENTS_TABLE_HTML);
             if (testType == TestType.REGRESSION_ERRORS) {
                 html = html.replace("<th>Volume</th>", "<th>Volume / Rate</th>");
                 html = html.replace("<th>Type</th>", "");
             }
             String eventsHtml = "";
-            for (EventVisualizationModel event : events) {
-                String eventHtml = getWebResource(WebResource.EVENT_DETAILS_HTML);
-                eventHtml = eventHtml.replace("arcLink", event.getArcLink());
-                eventHtml = eventHtml.replace("summary", event.getEventSummary());
-                eventHtml = eventHtml.replace("applications", event.getApplications());
-                eventHtml = eventHtml.replace("introducedBy", event.getIntroducedBy());
-                eventHtml = eventHtml.replace("eventRate", event.getEventRate());
-                eventHtml = eventHtml.replace("eventType", event.getType());
-
-                eventsHtml += eventHtml;
+            if (events != null) {
+                for (EventVisualizationModel event : events) {
+                    String eventHtml = getWebResource(WebResource.EVENT_DETAILS_HTML);
+                    eventHtml = eventHtml.replace("arcLink", convertNullToString(event.getArcLink()));
+                    eventHtml = eventHtml.replace("summary", convertNullToString(event.getEventSummary()));
+                    eventHtml = eventHtml.replace("applications", convertNullToString(event.getApplications()));
+                    eventHtml = eventHtml.replace("introducedBy", convertNullToString(event.getIntroducedBy()));
+                    eventHtml = eventHtml.replace("eventRate", convertNullToString(event.getEventRate()));
+                    eventHtml = eventHtml.replace("eventType", convertNullToString(event.getType()));
+    
+                    eventsHtml += eventHtml;
+                }
             }
             html = html.replace("<tr class=\"events\"></tr>", eventsHtml);
         }
         return html;
+    }
+
+    private String convertNullToString(String string) {
+        return string == null ? "" : string;
     }
 }

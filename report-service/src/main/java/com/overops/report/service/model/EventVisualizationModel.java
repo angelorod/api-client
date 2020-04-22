@@ -4,12 +4,12 @@ import com.takipi.api.client.util.cicd.OOReportEvent;
 
 public class EventVisualizationModel {
 
-    private String arcLink;
-    private String type;
-    private String applications;
-    private String introducedBy;
-    private String eventSummary;
-    private String eventRate;
+    private String arcLink = "";
+    private String type = "";
+    private String applications = "";
+    private String introducedBy = "";
+    private String eventSummary = "";
+    private String eventRate = "";
     private long hits;
     private long calls;
 
@@ -89,5 +89,5 @@ public class EventVisualizationModel {
 
     public void setCalls(long calls) {
         this.calls = calls;
-    }      
+    }   
 }
