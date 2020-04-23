@@ -2,7 +2,7 @@ package com.overops.report.service.model;
 
 public class QualityReportExceptionDetails {
     private String exceptionMessage;
-    private String stackTrace;
+    private String[] stackTrace;
     private String emailMessage;
 
     public String getExceptionMessage() {
@@ -13,11 +13,11 @@ public class QualityReportExceptionDetails {
         this.exceptionMessage = exceptionMessage;
     }
 
-    public String getStackTrace() {
+    public String[] getStackTrace() {
         return stackTrace;
     }
 
-    public void setStackTrace(String stackTrace) {
+    public void setStackTrace(String[] stackTrace) {
         this.stackTrace = stackTrace;
     }
 

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class QualityReportVisualizationModel {
+public class QualityReport {
   
     public enum ReportStatus {
         PASSED,
@@ -24,13 +24,13 @@ public class QualityReportVisualizationModel {
         WARNING_ICON("web/img/icn-warning.svg"),
         LOGO_ICON("web/img/overops-logo.svg"),
         CSS("web/css/style.css"),
-        BODY_HTML("web/html/body.html"),
+        REPORT_HTML("web/html/report.html"),
         ERROR_GATE_HEADER_HTML("web/html/errorGateHeader.html"),
         ERROR_GATE_SUMMARY_HTML("web/html/errorGateSummary.html"),
         EVENT_DETAILS_HTML("web/html/eventDetails.html"),
         EVENTS_TABLE_HTML("web/html/eventsTable.html"),
         EXCEPTION_HTML("web/html/exception.html"),
-        REPORT_HTML("web/html/report.html");
+        PAGE_HTML("web/html/page.html");
 
         private final String filePath;
 
@@ -55,20 +55,20 @@ public class QualityReportVisualizationModel {
     ReportStatus statusCode = ReportStatus.FAILED;
     String statusMsg = "";
 
-    QualityReportTestResults newErrorsTestResults;
-    QualityReportTestResults resurfacedErrorsTestResults;
-    QualityReportTestResults criticalErrorsTestResults;
-    QualityReportTestResults regressionErrorsTestResults;
-    QualityReportTestResults totalErrorsTestResults;
-    QualityReportTestResults uniqueErrorsTestResults;
+    QualityGateTestResults newErrorsTestResults;
+    QualityGateTestResults resurfacedErrorsTestResults;
+    QualityGateTestResults criticalErrorsTestResults;
+    QualityGateTestResults regressionErrorsTestResults;
+    QualityGateTestResults totalErrorsTestResults;
+    QualityGateTestResults uniqueErrorsTestResults;
 
-    List<EventVisualizationModel> topEvents = Collections.emptyList();
+    List<QualityGateEvent> topEvents = Collections.emptyList();
 
     QualityReportExceptionDetails exceptionDetails;
 
     private transient String[] webResources = new String[WebResource.values().length];
 
-    public QualityReportVisualizationModel() {
+    public QualityReport() {
     }
 
     public ReportStatus getStatusCode() {
@@ -87,73 +87,77 @@ public class QualityReportVisualizationModel {
         this.statusMsg = statusMsg;
     }
 
-    public QualityReportTestResults getNewErrorsTestResults() {
+    public QualityGateTestResults getNewErrorsTestResults() {
         return newErrorsTestResults;
     }
 
-    public void setNewErrorsTestResults(QualityReportTestResults newErrorsTestResults) {
+    public void setNewErrorsTestResults(QualityGateTestResults newErrorsTestResults) {
         this.newErrorsTestResults = newErrorsTestResults;
     }
 
-    public QualityReportTestResults getResurfacedErrorsTestResults() {
+    public QualityGateTestResults getResurfacedErrorsTestResults() {
         return resurfacedErrorsTestResults;
     }
 
-    public void setResurfacedErrorsTestResults(QualityReportTestResults resurfacedErrorsTestResults) {
+    public void setResurfacedErrorsTestResults(QualityGateTestResults resurfacedErrorsTestResults) {
         this.resurfacedErrorsTestResults = resurfacedErrorsTestResults;
     }
 
-    public QualityReportTestResults getCriticalErrorsTestResults() {
+    public QualityGateTestResults getCriticalErrorsTestResults() {
         return criticalErrorsTestResults;
     }
 
-    public void setCriticalErrorsTestResults(QualityReportTestResults criticalErrorsTestResults) {
+    public void setCriticalErrorsTestResults(QualityGateTestResults criticalErrorsTestResults) {
         this.criticalErrorsTestResults = criticalErrorsTestResults;
     }
 
-    public QualityReportTestResults getRegressionErrorsTestResults() {
+    public QualityGateTestResults getRegressionErrorsTestResults() {
         return regressionErrorsTestResults;
     }
 
-    public void setRegressionErrorsTestResults(QualityReportTestResults regressionErrorsTestResults) {
+    public void setRegressionErrorsTestResults(QualityGateTestResults regressionErrorsTestResults) {
         this.regressionErrorsTestResults = regressionErrorsTestResults;
     }
 
-    public QualityReportTestResults getTotalErrorsTestResults() {
+    public QualityGateTestResults getTotalErrorsTestResults() {
         return totalErrorsTestResults;
     }
 
-    public void setTotalErrorsTestResults(QualityReportTestResults totalErrorsTestResults) {
+    public void setTotalErrorsTestResults(QualityGateTestResults totalErrorsTestResults) {
         this.totalErrorsTestResults = totalErrorsTestResults;
     }
 
-    public QualityReportTestResults getUniqueErrorsTestResults() {
+    public QualityGateTestResults getUniqueErrorsTestResults() {
         return uniqueErrorsTestResults;
     }
 
-    public void setUniqueErrorsTestResults(QualityReportTestResults uniqueErrorsTestResults) {
+    public void setUniqueErrorsTestResults(QualityGateTestResults uniqueErrorsTestResults) {
         this.uniqueErrorsTestResults = uniqueErrorsTestResults;
     }
 
-    public List<EventVisualizationModel> getTopEvents() {
+    public List<QualityGateEvent> getTopEvents() {
         return topEvents;
     }
 
-    public void setTopEvents(List<EventVisualizationModel> topEvents) {
+    public void setTopEvents(List<QualityGateEvent> topEvents) {
         this.topEvents = topEvents;
     }
 
     public HtmlParts getHtmlParts() throws IOException {
         HtmlParts htmlParts = new HtmlParts();
-        htmlParts.setBody(getHtmlBody());
+        if (exceptionDetails != null) {
+            htmlParts.setHtml(getExceptionHtml());
+        } else {
+            htmlParts.setHtml(getReportHtml());
+        }
         htmlParts.setCss(getWebResource(WebResource.CSS));
         return htmlParts;
     }
 
     public String toHtml() throws IOException {
         HtmlParts htmlParts = getHtmlParts();
-        String html = getWebResource(WebResource.REPORT_HTML).replace("<style></style>", "<style>" + htmlParts.getCss() + "</style>");
-        html = html.replace("<body></body>", "<body>" + htmlParts.getBody() + "</body>");
+        String html = getWebResource(WebResource.PAGE_HTML).replace("<style></style>", "<style>" + htmlParts.getCss() + "</style>");
+        html = html.replace("<body></body>", "<body>" + htmlParts.getHtml() + "</body>");
         return html;
     }
 
@@ -186,9 +190,24 @@ public class QualityReportVisualizationModel {
         return fileContents;
     }
 
-    private String getHtmlBody() {
-        String htmlBody = getWebResource(WebResource.BODY_HTML);
-        htmlBody = htmlBody.replace("<img id=\"logo\"></img>", getWebResource(WebResource.LOGO_ICON));
+    private String getExceptionHtml() {
+        String exceptionHtml = getWebResource(WebResource.EXCEPTION_HTML);
+        exceptionHtml = exceptionHtml.replace("<img id=\"logo\"></img>", getWebResource(WebResource.LOGO_ICON));
+        exceptionHtml = exceptionHtml.replace("<img class=\"icon\"></img>", getWebResource(WebResource.QUESTION_ICON));
+        exceptionHtml = exceptionHtml.replace("<code></code>", "<code>" + getExceptionDetails().getExceptionMessage() + "</code>");
+
+        String stackTrace = "";
+        for (String stack : getExceptionDetails().getStackTrace()) {
+            stackTrace += stack.replace(" ", "&dnsp;") + "<br/>";
+        }
+        exceptionHtml = exceptionHtml.replace("<pre></pre>", "<pre>" + stackTrace + "</pre>");
+
+        return exceptionHtml;        
+    }
+
+    private String getReportHtml() {
+        String reportHtml = getWebResource(WebResource.REPORT_HTML);
+        reportHtml = reportHtml.replace("<img id=\"logo\"></img>", getWebResource(WebResource.LOGO_ICON));
 
         String cssClass = null;
         String icon = null; 
@@ -207,35 +226,35 @@ public class QualityReportVisualizationModel {
                 icon = getWebResource(WebResource.DANGER_ICON);
                 break;
         }
-        htmlBody = htmlBody.replace("report-status", cssClass);
-        htmlBody = htmlBody.replace("<img id=\"reportStatusIcon\"></img>", icon);
-        htmlBody = htmlBody.replace("<span id=\"reportStatusMsg\"></span>", getStatusMsg());
+        reportHtml = reportHtml.replace("report-status", cssClass);
+        reportHtml = reportHtml.replace("<img id=\"reportStatusIcon\"></img>", icon);
+        reportHtml = reportHtml.replace("<span id=\"reportStatusMsg\"></span>", getStatusMsg());
 
-        htmlBody = htmlBody.replace("<tr id=\"newErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.NEW_ERRORS));
-        htmlBody = htmlBody.replace("<tr id=\"resurfacedErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.RESURFACED_ERRORS));
-        htmlBody = htmlBody.replace("<tr id=\"totalErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.TOTAL_ERRORS));
-        htmlBody = htmlBody.replace("<tr id=\"uniqueErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.UNIQUE_ERRORS));
-        htmlBody = htmlBody.replace("<tr id=\"criticalErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.CRITICAL_ERRORS));
-        htmlBody = htmlBody.replace("<tr id=\"regressionErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.REGRESSION_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"newErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.NEW_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"resurfacedErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.RESURFACED_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"totalErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.TOTAL_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"uniqueErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.UNIQUE_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"criticalErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.CRITICAL_ERRORS));
+        reportHtml = reportHtml.replace("<tr id=\"regressionErrorsSummary\"></tr>", getErrorGateSummaryHtml(TestType.REGRESSION_ERRORS));
 
-        htmlBody = htmlBody.replace("<div id=\"newErrorsHeader\"></div>", getEventsHeader(TestType.NEW_ERRORS));
-        htmlBody = htmlBody.replace("<table id=\"newErrorEvents\"></table>", getEventsTable(TestType.NEW_ERRORS));
-        htmlBody = htmlBody.replace("<div id=\"resurfacedErrorsHeader\"></div>", getEventsHeader(TestType.RESURFACED_ERRORS));
-        htmlBody = htmlBody.replace("<table id=\"resurfacedErrorEvents\"></table>", getEventsTable(TestType.RESURFACED_ERRORS));
-        htmlBody = htmlBody.replace("<div id=\"totalErrorsHeader\"></div>", getEventsHeader(TestType.TOTAL_ERRORS));
-        htmlBody = htmlBody.replace("<div id=\"uniqueErrorsHeader\"></div>", getEventsHeader(TestType.UNIQUE_ERRORS));
-        htmlBody = htmlBody.replace("<table id=\"topErrorEvents\"></table>", getEventsTable(TestType.TOTAL_ERRORS));
-        htmlBody = htmlBody.replace("<div id=\"criticalErrorsHeader\"></div>", getEventsHeader(TestType.CRITICAL_ERRORS));
-        htmlBody = htmlBody.replace("<table id=\"criticalErrorEvents\"></table>", getEventsTable(TestType.CRITICAL_ERRORS));
-        htmlBody = htmlBody.replace("<div id=\"regressionErrorsHeader\"></div>", getEventsHeader(TestType.REGRESSION_ERRORS));
-        htmlBody = htmlBody.replace("<table id=\"regressionErrorEvents\"></table>", getEventsTable(TestType.REGRESSION_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"newErrorsHeader\"></div>", getEventsHeader(TestType.NEW_ERRORS));
+        reportHtml = reportHtml.replace("<table id=\"newErrorEvents\"></table>", getEventsTable(TestType.NEW_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"resurfacedErrorsHeader\"></div>", getEventsHeader(TestType.RESURFACED_ERRORS));
+        reportHtml = reportHtml.replace("<table id=\"resurfacedErrorEvents\"></table>", getEventsTable(TestType.RESURFACED_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"totalErrorsHeader\"></div>", getEventsHeader(TestType.TOTAL_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"uniqueErrorsHeader\"></div>", getEventsHeader(TestType.UNIQUE_ERRORS));
+        reportHtml = reportHtml.replace("<table id=\"topErrorEvents\"></table>", getEventsTable(TestType.TOTAL_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"criticalErrorsHeader\"></div>", getEventsHeader(TestType.CRITICAL_ERRORS));
+        reportHtml = reportHtml.replace("<table id=\"criticalErrorEvents\"></table>", getEventsTable(TestType.CRITICAL_ERRORS));
+        reportHtml = reportHtml.replace("<div id=\"regressionErrorsHeader\"></div>", getEventsHeader(TestType.REGRESSION_ERRORS));
+        reportHtml = reportHtml.replace("<table id=\"regressionErrorEvents\"></table>", getEventsTable(TestType.REGRESSION_ERRORS));
 
-        return htmlBody;
+        return reportHtml;
     }
 
     private String getErrorGateSummaryHtml(TestType testType) {
         String html = "";
-        QualityReportTestResults testResults = null;
+        QualityGateTestResults testResults = null;
     
         boolean passed = false;
         String anchorRef = "";
@@ -295,7 +314,7 @@ public class QualityReportVisualizationModel {
 
     private String getEventsHeader(TestType testType) {
         String html = "";
-        QualityReportTestResults testResults = null;
+        QualityGateTestResults testResults = null;
     
         String anchorRef = "";
 
@@ -347,8 +366,8 @@ public class QualityReportVisualizationModel {
 
     private String getEventsTable(TestType testType) {
         String html = "";  
-        QualityReportTestResults testResults = null;
-        List<EventVisualizationModel> events = new ArrayList<>();
+        QualityGateTestResults testResults = null;
+        List<QualityGateEvent> events = new ArrayList<>();
 
         switch (testType) {
             case NEW_ERRORS:
@@ -397,7 +416,7 @@ public class QualityReportVisualizationModel {
             }
             String eventsHtml = "";
             if (events != null) {
-                for (EventVisualizationModel event : events) {
+                for (QualityGateEvent event : events) {
                     String eventHtml = getWebResource(WebResource.EVENT_DETAILS_HTML);
                     eventHtml = eventHtml.replace("arcLink", convertNullToString(event.getArcLink()));
                     eventHtml = eventHtml.replace("summary", convertNullToString(event.getEventSummary()));
@@ -416,5 +435,13 @@ public class QualityReportVisualizationModel {
 
     private String convertNullToString(String string) {
         return string == null ? "" : string;
+    }
+
+    public QualityReportExceptionDetails getExceptionDetails() {
+        return exceptionDetails;
+    }
+
+    public void setExceptionDetails(QualityReportExceptionDetails exceptionDetails) {
+        this.exceptionDetails = exceptionDetails;
     }
 }

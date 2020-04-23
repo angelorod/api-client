@@ -2,14 +2,14 @@ package com.overops.report.service.model;
 
 public class HtmlParts {
     private String css = "";
-    private String body = "";
+    private String html = "";
 
     public HtmlParts() {
     }
 
-    public HtmlParts(String body, String css) {
+    public HtmlParts(String html, String css) {
         this.css = css;
-        this.body = body;
+        this.html = html;
     }
 
     public String getCss() {
@@ -20,12 +20,12 @@ public class HtmlParts {
         this.css = css;
     }
 
-    public String getBody() {
-        return body;
+    public String getHtml() {
+        return html;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setHtml(String html) {
+        this.html = html;
     }
     
 }

@@ -2,17 +2,17 @@ package com.overops.report.service.model;
 
 import java.util.List;
 
-public class QualityReportTestResults {
+public class QualityGateTestResults {
     private boolean passed = false;
     private String message = "";
     private long errorCount = 0;
-    private List<EventVisualizationModel> events = null;
+    private List<QualityGateEvent> events = null;
 
-    public QualityReportTestResults() {
+    public QualityGateTestResults() {
 
     }
 
-    public QualityReportTestResults(boolean passed, String message) {
+    public QualityGateTestResults(boolean passed, String message) {
         this.passed = passed;
         this.message = message;
     }
@@ -33,11 +33,11 @@ public class QualityReportTestResults {
         this.message = message;
     }
 
-    public List<EventVisualizationModel> getEvents() {
+    public List<QualityGateEvent> getEvents() {
         return events;
     }
 
-    public void setEvents(List<EventVisualizationModel> events) {
+    public void setEvents(List<QualityGateEvent> events) {
         this.events = events;
         errorCount = events != null ? events.size() : 0;
     }

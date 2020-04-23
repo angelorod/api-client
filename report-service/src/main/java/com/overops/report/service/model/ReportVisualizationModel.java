@@ -36,11 +36,11 @@ public class ReportVisualizationModel {
     private String uniqueErrorSummary;
     private String regressionSummary;
 
-    private List<EventVisualizationModel> newEvents = new ArrayList<>();
-    private List<EventVisualizationModel> resurfacedEvents = new ArrayList<>();
-    private List<EventVisualizationModel> criticalEvents = new ArrayList<>();
-    private List<EventVisualizationModel> topEvents = new ArrayList<>();
-    private List<EventVisualizationModel> regressedEvents = new ArrayList<>();
+    private List<QualityGateEvent> newEvents = new ArrayList<>();
+    private List<QualityGateEvent> resurfacedEvents = new ArrayList<>();
+    private List<QualityGateEvent> criticalEvents = new ArrayList<>();
+    private List<QualityGateEvent> topEvents = new ArrayList<>();
+    private List<QualityGateEvent> regressedEvents = new ArrayList<>();
 
     // UI summary table
     private boolean hasTotal;
@@ -80,16 +80,16 @@ public class ReportVisualizationModel {
         setCheckRegressedErrors(checkRegressionGate);
         setCheckTotalErrors(checkVolumeGate);
 
-        setNewEvents(Optional.ofNullable(qualityGateReport.getNewErrors()).orElse(new ArrayList<>()).stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
-        setResurfacedEvents(Optional.ofNullable(qualityGateReport.getResurfacedErrors()).orElse(new ArrayList<>()).stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
-        setCriticalEvents(Optional.ofNullable(qualityGateReport.getCriticalErrors()).orElse(new ArrayList<>()).stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
-        setTopEvents(Optional.ofNullable(qualityGateReport.getTopErrors()).orElse(new ArrayList<>()).stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+        setNewEvents(Optional.ofNullable(qualityGateReport.getNewErrors()).orElse(new ArrayList<>()).stream().map(e -> new QualityGateEvent(e)).collect(Collectors.toList()));
+        setResurfacedEvents(Optional.ofNullable(qualityGateReport.getResurfacedErrors()).orElse(new ArrayList<>()).stream().map(e -> new QualityGateEvent(e)).collect(Collectors.toList()));
+        setCriticalEvents(Optional.ofNullable(qualityGateReport.getCriticalErrors()).orElse(new ArrayList<>()).stream().map(e -> new QualityGateEvent(e)).collect(Collectors.toList()));
+        setTopEvents(Optional.ofNullable(qualityGateReport.getTopErrors()).orElse(new ArrayList<>()).stream().map(e -> new QualityGateEvent(e)).collect(Collectors.toList()));
 
         ArrayList<OOReportEvent> allIssues = new ArrayList<>();
         if (regressions != null) {
             allIssues.addAll(regressions);
         }
-        setRegressedEvents(allIssues.stream().map(e -> new EventVisualizationModel(e)).collect(Collectors.toList()));
+        setRegressedEvents(allIssues.stream().map(e -> new QualityGateEvent(e)).collect(Collectors.toList()));
 
         setPassedNewErrorGate(checkNewGate && !hasNewErrors);
         setPassedResurfacedErrorGate(checkResurfacedGate && !hasResurfacedErrors);
@@ -364,43 +364,43 @@ public class ReportVisualizationModel {
         this.regressionSummary = regressionSummary;
     }
 
-    public List<EventVisualizationModel> getNewEvents() {
+    public List<QualityGateEvent> getNewEvents() {
         return newEvents;
     }
 
-    public void setNewEvents(List<EventVisualizationModel> newEvents) {
+    public void setNewEvents(List<QualityGateEvent> newEvents) {
         this.newEvents = newEvents;
     }
 
-    public List<EventVisualizationModel> getResurfacedEvents() {
+    public List<QualityGateEvent> getResurfacedEvents() {
         return resurfacedEvents;
     }
 
-    public void setResurfacedEvents(List<EventVisualizationModel> resurfacedEvents) {
+    public void setResurfacedEvents(List<QualityGateEvent> resurfacedEvents) {
         this.resurfacedEvents = resurfacedEvents;
     }
 
-    public List<EventVisualizationModel> getCriticalEvents() {
+    public List<QualityGateEvent> getCriticalEvents() {
         return criticalEvents;
     }
 
-    public void setCriticalEvents(List<EventVisualizationModel> criticalEvents) {
+    public void setCriticalEvents(List<QualityGateEvent> criticalEvents) {
         this.criticalEvents = criticalEvents;
     }
 
-    public List<EventVisualizationModel> getTopEvents() {
+    public List<QualityGateEvent> getTopEvents() {
         return topEvents;
     }
 
-    public void setTopEvents(List<EventVisualizationModel> topEvents) {
+    public void setTopEvents(List<QualityGateEvent> topEvents) {
         this.topEvents = topEvents;
     }
 
-    public List<EventVisualizationModel> getRegressedEvents() {
+    public List<QualityGateEvent> getRegressedEvents() {
         return regressedEvents;
     }
 
-    public void setRegressedEvents(List<EventVisualizationModel> regressedEvents) {
+    public void setRegressedEvents(List<QualityGateEvent> regressedEvents) {
         this.regressedEvents = regressedEvents;
     }
 

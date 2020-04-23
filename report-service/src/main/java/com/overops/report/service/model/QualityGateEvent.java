@@ -2,7 +2,7 @@ package com.overops.report.service.model;
 
 import com.takipi.api.client.util.cicd.OOReportEvent;
 
-public class EventVisualizationModel {
+public class QualityGateEvent {
 
     private String arcLink = "";
     private String type = "";
@@ -11,19 +11,17 @@ public class EventVisualizationModel {
     private String eventSummary = "";
     private String eventRate = "";
     private long hits;
-    private long calls;
 
-    public EventVisualizationModel(){
+    public QualityGateEvent(){
     }
 
-    public EventVisualizationModel(OOReportEvent event) {
+    public QualityGateEvent(OOReportEvent event) {
         this.arcLink = event.getARCLink();
         this.type = event.getType();
         this.introducedBy = event.getIntroducedBy();
         this.eventSummary = event.getEventSummary();
         this.eventRate = event.getEventRate();
         this.hits = event.getHits();
-        this.calls = event.getCalls();
         this.applications = event.getApplications();
     }
 
@@ -82,12 +80,4 @@ public class EventVisualizationModel {
     public void setHits(long hits) {
         this.hits = hits;
     }
-
-    public long getCalls() {
-        return calls;
-    }
-
-    public void setCalls(long calls) {
-        this.calls = calls;
-    }   
 }
