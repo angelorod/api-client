@@ -71,7 +71,7 @@ public class ReportService {
 
     @Deprecated
     public ReportVisualizationModel createReportVisualizationModel(String endPoint, String apiKey, QualityReportParams reportParams) {
-        QualityReport qualityReport = runQualityReport(endPoint, apiKey, reportParams);
+        QualityReport qualityReport = runQualityReport(endPoint, apiKey, reportParams, null);
 
         QualityGateTestResults newResults = qualityReport.getNewErrorsTestResults();
         QualityGateTestResults resurfacedResults = qualityReport.getNewErrorsTestResults();
@@ -146,40 +146,24 @@ public class ReportService {
         return reportVisualizationModel;
     }
 
-    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams) throws IOException {
-        return runQualityReport(endPoint, apiKey, reportParams, (Integer)null, null, false).toHtml();
-    }
-
     public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor) throws IOException {
-        return runQualityReport(endPoint, apiKey, reportParams, requestor, null, false).toHtml();
-    }
-
-    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId) throws IOException {
-        return runQualityReport(endPoint, apiKey, reportParams, requestorId, null, false).toHtml();
+        return runQualityReport(endPoint, apiKey, reportParams, requestor != null ? requestor.getId() : null, null, false).toHtml();
     }
 
     public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor, PrintStream outputStream, boolean debug) throws IOException {
-        return runQualityReport(endPoint, apiKey, reportParams, requestor.getId(), outputStream, debug).toHtml();
+        return runQualityReport(endPoint, apiKey, reportParams, requestor != null ? requestor.getId() : null, outputStream, debug).toHtml();
     }
 
     public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId, PrintStream outputStream, boolean debug) throws IOException {
         return runQualityReport(endPoint, apiKey, reportParams, requestorId, outputStream, debug).toHtml();
     }
 
-    public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams) {
-        return runQualityReport(endPoint, apiKey, reportParams, (Integer)null, null, false);
-    }
-
     public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor) {
-        return runQualityReport(endPoint, apiKey, reportParams, requestor, null, false);
-    }
-
-    public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId) {
-        return runQualityReport(endPoint, apiKey, reportParams, requestorId, null, false);
+        return runQualityReport(endPoint, apiKey, reportParams, requestor != null ? requestor.getId() : null, null, false);
     }
 
     public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor, PrintStream outputStream, boolean debug) {
-        return runQualityReport(endPoint, apiKey, reportParams, requestor.getId(), outputStream, debug);
+        return runQualityReport(endPoint, apiKey, reportParams, requestor != null ? requestor.getId() : null, outputStream, debug);
     }
 
     public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId, PrintStream outputStream, boolean debug) {
