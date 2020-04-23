@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 public class ReportService {
     public enum Requestor {
         UNKNOWN(100),
-        GIT_LAB(10),
+        GIT_LAB(80),
         TEAM_CITY(58),
-        BAMBOO(40),
-        JENKINS(20);
+        BAMBOO(52),
+        JENKINS(4);
 
         private final int id;
 
@@ -57,7 +57,7 @@ public class ReportService {
 
         try {
             QualityReport visualizationModel;
-            visualizationModel = new ReportService().runQualityReport(endPoint, apiKey, reportParams);
+            visualizationModel = new ReportService().runQualityReport(endPoint, apiKey, reportParams, Requestor.TEAM_CITY);
             
             String html = visualizationModel.toHtml();
     
@@ -146,8 +146,28 @@ public class ReportService {
         return reportVisualizationModel;
     }
 
+    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams) throws IOException {
+        return runQualityReport(endPoint, apiKey, reportParams, (Integer)null, null, false).toHtml();
+    }
+
+    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor) throws IOException {
+        return runQualityReport(endPoint, apiKey, reportParams, requestor, null, false).toHtml();
+    }
+
+    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId) throws IOException {
+        return runQualityReport(endPoint, apiKey, reportParams, requestorId, null, false).toHtml();
+    }
+
+    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor, PrintStream outputStream, boolean debug) throws IOException {
+        return runQualityReport(endPoint, apiKey, reportParams, requestor.getId(), outputStream, debug).toHtml();
+    }
+
+    public String getQualityReportHtml(String endPoint, String apiKey, QualityReportParams reportParams, Integer requestorId, PrintStream outputStream, boolean debug) throws IOException {
+        return runQualityReport(endPoint, apiKey, reportParams, requestorId, outputStream, debug).toHtml();
+    }
+
     public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams) {
-        return runQualityReport(endPoint, apiKey, reportParams, Requestor.UNKNOWN, null, false);
+        return runQualityReport(endPoint, apiKey, reportParams, (Integer)null, null, false);
     }
 
     public QualityReport runQualityReport(String endPoint, String apiKey, QualityReportParams reportParams, Requestor requestor) {
